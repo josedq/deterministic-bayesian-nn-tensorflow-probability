@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+artifacts/
+results/
+docs/analysis
+docs/architecture_comparison
+docs/segmentation_comparison
+docs/training
+data/
