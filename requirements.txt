@@ -1,0 +1,11 @@
+tensorflow
+tensorflow-probability
+numpy
+pandas
+scikit-learn
+requests
+jupyterlab
+seaborn
+matplotlib
+tf-keras
+scipy
