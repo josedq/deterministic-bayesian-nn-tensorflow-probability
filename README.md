@@ -58,7 +58,7 @@ Conduct an empirical experimentation phase to contrast the behavior of the deter
 
 ## Setup and Installation
 
-This section provides a step-by-step guide to setting up your local environment to run the modeling pipeline, deploy all three architectures, and execute the comparative load tests.
+This section provides a step-by-step guide to setting up your local environment to run the design and training of the models, and the subsequent experimentation phase.
 
 **1. Prerequisites**
 
@@ -71,16 +71,16 @@ Ensure you have the following software and resources available to run the projec
 
 **2. Clone the Repository**
 
-Then, clone this repository to your local machine:
+Clone this repository to your local machine:
 
 ```powershell
-git clone https://github.com/josedq/tensorflow-probability-bayesian-nn-uncertainty.git
-cd tensorflow-probability-bayesian-nn-uncertainty
+git clone https://github.com/josedq/deterministic-bayesian-nn-tensorflow-probability.git
+cd deterministic-bayesian-nn-tensorflow-probability
 ```
 
 **3. Set up the Python Environment**
 
-All Python scripts should be run from a virtual environment.
+All Python scripts should be run within a virtual environment.
 
 ```powershell
 # Create a virtual environment (e.g., named 'venv')
@@ -172,7 +172,7 @@ Implements the complete data transformation methodology. It performs robust data
 `03_deterministic_modeling.ipynb`
 
 Serves as the architectural testbed to establish the predictive baseline. The notebook is split into two critical experiments:
-1. **Architecture Ablation Study:** Systematically compares variations in network depth (2 to 4 layers), width, and activation functions (`relu`, `tanh`, `sigmoid`) to find the optimal Multi-Layer Perceptron (MLP)topology.
+1. **Architecture Ablation Study:** Systematically compares variations in network depth (2 to 4 layers), width, and activation functions (`relu`, `tanh`, `sigmoid`) to find the optimal Multi-Layer Perceptron (MLP) topology.
 2. **Segmentation Strategy:** Empirically proves that fitting independent models to distinct price brackets (e.g., 5 specific segments) dramatically reduces the global Mean Absolute Error (MAE) compared to a single monolithic model.
 
 It concludes by training the optimal architecture across the 5 defined segments and saving the production-ready `.keras` artifacts.
@@ -203,13 +203,7 @@ This script serves as the definitive workflow for training both the deterministi
     * The centralized preprocessing pipeline (`preprocessor.pkl`).
     * The deterministic segment models in native Keras format (`.keras`).
     * The Bayesian segment weights (`.h5`) alongside their structural configuration JSONs (`_config.json`).
-8.  **Automated Logging:** Emits real-time training times, parameter counts, and MAE/MAPE validation metrics to the console, and compiles a comprehensive evaluation report saved as both `.csv` and `.json` in the `results/training/` directory.
-
-**Usage:**
-
-```powershell
-python src/production_training.py
-```
+8.  **Automated Logging:** Emits real-time training times, parameter counts, and MAE/MAPE validation metrics to the console, and compiles a comprehensive evaluation report saved as both `metrics_summary.csv` and `metrics_summary.json` in the `results/training/` directory.
 
 ## Experimental Evaluation
 
@@ -229,12 +223,14 @@ This comprehensive suite evaluates the predictive quality, calibration, and prac
 
 `exp02_07_uncertainty_suite.py`
 
-*   **EXP-02 Baseline Predictions Audit:** Conducts a detailed manual audit on an array of 15 random test samples, explicitly selecting 3 from each of the 5 predefined price segments. For every listing, it calculates and displays the deterministic and Bayesian price predictions alongside the real housing price, showcasing the absolute and relative errors committed as well as the expected uncertainty margins (standard deviations). The results are saved into `exp02_audit.csv` for human inspection.
-*   **EXP-03 Segment-Level Performance Comparison:** Analyzes how the segmentation strategy affects accuracy across different price brackets by breaking down the MAE, MAPE, and RMSE metrics for each of the 5 predefined price segments. A visual comparison of this segment-by-segment performance is saved to `exp03_segments.png`.
-*   **EXP-04 Uncertainty-Error Correlation:** Verifies if the Bayesian model is correctly calibrated by calculating the Spearman rank correlation between the model's absolute prediction error and the predicted standard deviation (uncertainty). A positive correlation, visualized as scatter plots in `exp04_correlation.png`, indicates that the model successfully flags highly erroneous predictions with high uncertainty.
-*   **EXP-05 Confidence Interval Calibration:** Evaluates if the probabilistic bounds are statistically sound by calculating empirical coverage—that is, how often the true housing price actually falls within the predicted 95% Confidence Interval. It measures the average width of these intervals across segments, plotting the expected versus empirical coverage in `exp05_calibration_analysis.png`.
-*   **EXP-06 Aleatoric vs Epistemic Decomposition:** Analyzes the sources of uncertainty for different listings by decomposing the total predictive variance into Aleatoric (inherent data noise) and Epistemic (model ignorance) components. This reveals which type of uncertainty is driving the confidence limits, generating a detailed structural CSV and a visualization saved as `exp06_uncertainty_decomposition.png`.
+*   **EXP-02 Baseline Predictions Audit:** Conducts a detailed manual audit on an array of 15 random test samples, explicitly selecting 3 from each of the 5 predefined price segments. For every listing, it calculates and displays the deterministic and Bayesian price predictions alongside the real housing price, showcasing the absolute and relative errors committed as well as the expected uncertainty margins (standard deviations). The results are saved into `exp02_audit.csv` and `exp02_audit_plot.png` for human inspection.
+*   **EXP-03 Segment-Level Performance Comparison:** Analyzes how the segmentation strategy affects accuracy across different price brackets by breaking down the MAE, MAPE, and RMSE metrics for each of the 5 predefined price segments. A visual comparison of this segment-by-segment performance is saved to `exp03_segments.png`. Also, the metrics are saved in `exp03_segments.csv`
+*   **EXP-04 Uncertainty-Error Correlation:** Verifies if the Bayesian model is correctly calibrated by calculating the Spearman rank correlation between the model's absolute prediction error and the predicted standard deviation (uncertainty). A positive correlation, visualized as a hexagonal density plot in `exp04_correlation.png`, indicates that the model correctly assigns higher uncertainty to its more erroneous predictions.
+*   **EXP-05 Confidence Interval Calibration:** Evaluates if the probabilistic bounds are statistically sound by calculating empirical coverage—that is, how often the true housing price actually falls within the predicted 95% Confidence Interval. It measures the average width of these intervals across segments, plotting the expected versus empirical coverage in `exp05_calibration_analysis.png`. Additionally, it generates `exp05_calibration_detailed.csv` for detailed coverage across different confidence levels and `exp05_calibration_by_segment.csv` for a detailed segment-by-segment breakdown.
+*   **EXP-06 Aleatoric vs Epistemic Decomposition:** Analyzes the sources of uncertainty for different listings by decomposing the total predictive variance into aleatoric (inherent data noise) and epistemic (model ignorance) components. This reveals which type of uncertainty is driving the confidence limits, generating a detailed structural `exp06_uncertainty_decomposition.csv` and a visualization saved as `exp06_uncertainty_decomposition.png`.
 *   **EXP-07 Rejection Pipeline Simulation:** Simulates a real-world business application leveraging Bayesian uncertainty by systematically rejecting the predictions with the highest uncertainty percentiles. It evaluates how the Global MAE progressively improves on the accepted subset of predictions, plotting this performance ceiling in `exp07_rejection.png`.
+
+All individual experiment results from EXP-02 through EXP-07 are additionally consolidated into a single machine-readable `summary.json` file saved to `results/experiments/`, enabling programmatic cross-referencing of the full evaluation suite.
 
 ### Cross-City Pipeline Generalization
 
@@ -242,7 +238,7 @@ This experiment validates the adaptability of the segmented preprocessing and mo
 
 `exp08_multi_city.py`
 
-This script generalizes the entire pipeline (preprocessor and model architectures) so it can directly ingest standard Airbnb Kaggle datasets. It iteratively trains and tests this generalized strategy from scratch across 4 different real estate markets: Madrid, Barcelona, Tokyo, and Mexico City. By comparing the resulting predictive metrics of the deterministic and Bayesian architectures across all four locations, it proves the framework's universal applicability and robustness against structurally diverse housing distributions. The results are saved into `exp08_generalization.csv` and subsequently visualized in multiple comparison plots across the segments and cities, including individual training curves for each location (`exp08_{city}_training_curves.png`) to visually demonstrate model convergence and stability.
+This script generalizes the entire pipeline (preprocessor and model architectures) so it can directly ingest standard Inside Airbnb datasets. It iteratively trains and tests this generalized strategy from scratch across 4 different real estate markets: Madrid, Barcelona, Tokyo, and Mexico City. By comparing the resulting predictive metrics of the deterministic and Bayesian architectures across all four locations, it proves the framework's universal applicability and robustness against structurally diverse housing distributions. The results are saved into `exp08_multi_city_generalization.csv` and subsequently visualized in multiple comparison plots across the segments (`exp08_multi_city_segment_comparison.png`) and cities (`exp08_multi_city_generalization_summary.png`), including individual training curves for each location (`exp08_{city}_training_curves.png`) to visually demonstrate model convergence and stability.
 
 ### Computational Costs
 
@@ -256,7 +252,7 @@ This experiment extensively characterizes the computational resources utilized b
 
 `data_utils.py`
 
-This module is responsible for loading the raw datasets and executing the core feature engineering pipeline. It cleans and transforms data by parsing amenities lists into counts, calculating the number of days elapsed since critical dates (like the host's joining date or past reviews), mapping generic text to ordinal variables, and filtering outlier property prices above the configured threshold.
+This module is responsible for loading the raw datasets and executing the core feature engineering pipeline. It cleans and transforms data by parsing amenities lists into counts, calculating the number of days elapsed since critical dates (like the host's joining date or past reviews), mapping boolean text flags (`t`/`f`) to binary integer values (1/0), and filtering outlier property prices above the configured threshold.
 
 `logger_config.py`
 
@@ -278,6 +274,10 @@ This lightweight script provides the `resource_monitor` function, which is desig
 
 This file encapsulates the `scikit-learn` `ColumnTransformer` preprocessing pipeline. It defines how different data types should be treated before entering the neural network: numerical variables with missing values are median-imputed, standard numerical counts are scaled via `StandardScaler`, and categorical strings undergo one-hot encoding. This ensures exact consistency in the data representation between training and inference environments.
 
-`constants.py`
+`train_det_benchmark.py` / `train_bay_benchmark.py`
 
-This file serves as the centralized configuration source for the entire pipeline. It defines immutable parameters like random seeds, train/test split fractions, target variable names, upper price caps, feature categorizations, predefined price segments for clustered training, and visual color palettes. Keeping these centralized ensures experiments are absolutely reproducible across different execution sessions in multiple modules.
+These two sibling scripts are automatically invoked by `exp09_cost_analysis.py` to profile the computational resources consumed during a full training run. Each script independently trains the corresponding model type (deterministic or Bayesian) for all price segments while a background thread using `psutil` periodically samples CPU usage and RAM footprint. The resulting time-series measurements are saved to `results/experiments/exp09_train_det.csv` and `results/experiments/exp09_train_bay.csv` respectively, which are subsequently read and visualized by the cost analysis experiment.
+
+`config/constants.py`
+
+This file serves as the centralized configuration source for the entire pipeline. It defines immutable parameters like random seeds, train/test split fractions, target variable names, upper price caps, feature categorizations, predefined price segments for clustered training, and visual color palettes. Keeping these centralized ensures experiments are absolutely reproducible across different execution sessions and modules.
